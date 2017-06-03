@@ -12,6 +12,8 @@ import android.view.ViewGroup
  */
 class ZigZagLayoutManager(context: Context) : RecyclerView.LayoutManager() {
 
+    private var screenCenterX = 0
+    private var tileWidth = 0
 
     var firstPosition = 0
 
@@ -21,6 +23,9 @@ class ZigZagLayoutManager(context: Context) : RecyclerView.LayoutManager() {
 
     override fun onLayoutChildren(recycler: RecyclerView.Recycler?, state: RecyclerView.State?) {
         super.onLayoutChildren(recycler, state)
+
+        screenCenterX = width / 2
+
 
         val parentRight = width - paddingRight
         val oldLeftView = if (childCount > 0) getChildAt(0) else null
@@ -35,10 +40,12 @@ class ZigZagLayoutManager(context: Context) : RecyclerView.LayoutManager() {
         var bottom = (height - paddingBottom)
 
         val availableVerticalSpace = height - paddingTop - paddingBottom
-        val tileHeight = availableVerticalSpace * 2 / 3
+
+        tileWidth = availableVerticalSpace * 2 / 3
 
         val count = state?.itemCount ?: 0
 
+        val leftOverlap = availableVerticalSpace * 1 / 3
 
         var i = 0
         while (firstPosition + i < count && left < parentRight) {
@@ -47,15 +54,60 @@ class ZigZagLayoutManager(context: Context) : RecyclerView.LayoutManager() {
 
                 addView(v, i)
 
-                measureChildWithMarginsAndDesiredWidthAndHeight(v, tileHeight, tileHeight)
+                measureChildWithMarginsAndDesiredWidthAndHeight(v, tileWidth, tileWidth)
 
                 right = left + getDecoratedMeasuredWidth(v)
 
-                layoutDecorated(v, left, top, right, top + getDecoratedMeasuredHeight(v))
+                val xCenter = left + tileWidth / 2
+                val simplifiedXCenter = simplifyXPosition(xCenter)
+                val simplifiedYCenter = getYPositionForXPosition(simplifiedXCenter)
+                val yOffset = (simplifiedYCenter * tileWidth).toInt()
+
+
+                layoutDecorated(v, left, top + yOffset, right, top + getDecoratedMeasuredHeight(v) + yOffset)
                 i++
-                left = right
+
+                left = right //- if (shouldApplyLeftOffset(i)) leftOverlap else 0
             }
         }
+    }
+
+    /**
+     * Converts the on screen x position to an x position on the simplified graph where 0 is the center of the screen,
+     * 1 is the point where it first reaches its lowest 1 value, 2 is where it's at the highest y again, and so on.
+     * */
+    private fun simplifyXPosition(xPosition: Int): Float {
+        if (xPosition < screenCenterX) {
+            return ((screenCenterX - xPosition / tileWidth.toFloat()))
+        } else {
+            return ((xPosition - screenCenterX) / tileWidth.toFloat())
+        }
+    }
+
+
+    private fun shouldApplyLeftOffset(index: Int) = index > 0
+
+
+    /**
+     * Works with values on the simplified values graph, for both x and y.
+     * x is 0 at the view's highest y position, x is 1 at the view's lowest position, view is at the highest position again at 2, and so on
+     * y 1 is the view's highest position, y 0 is its lowest position
+     * */
+    private fun getYPositionForXPosition(xPosition: Float): Float {
+        val xPos = normaliseXPosition(xPosition)
+
+        return 1 - xPos
+    }
+
+    private fun normaliseXPosition(xPosition: Float): Float {
+        var mutableX = xPosition
+
+        mutableX = Math.abs(mutableX)
+        mutableX = mutableX % 2
+        if (mutableX > 1)
+            mutableX = 2 - mutableX
+
+        return mutableX
     }
 
     fun measureChildWithMarginsAndDesiredWidthAndHeight(child: View, desiredWidth: Int, desiredHeight: Int) {
@@ -64,8 +116,8 @@ class ZigZagLayoutManager(context: Context) : RecyclerView.LayoutManager() {
         // The measureChildWithMargins method uses a private method to get the item decorations, we solve it like this:
         val decorations = Rect()
         calculateItemDecorationsForChild(child, decorations)
-        val occupiedWidth= decorations.left + decorations.right
-        val occupiedHeight= decorations.top + decorations.bottom
+        val occupiedWidth = decorations.left + decorations.right
+        val occupiedHeight = decorations.top + decorations.bottom
 
 
         val widthSpec = RecyclerView.LayoutManager.getChildMeasureSpec(width,
@@ -86,7 +138,14 @@ class ZigZagLayoutManager(context: Context) : RecyclerView.LayoutManager() {
     override fun canScrollHorizontally() = true
 
     override fun scrollHorizontallyBy(dx: Int, recycler: RecyclerView.Recycler?, state: RecyclerView.State?): Int {
-        return super.scrollHorizontallyBy(dx, recycler, state)
+        //TODO("move views with this method")
+        getChildAt(0).offsetLeftAndRight(-dx)
+
+        //TODO("calculate the distance we need to move them up or down, then do that")
+//        getChildAt(0).top
+        getChildAt(0).offsetTopAndBottom(0)
+
+        return dx
     }
 
     private fun recycleViewsOutOfBounds(recycler: RecyclerView.Recycler?) {
