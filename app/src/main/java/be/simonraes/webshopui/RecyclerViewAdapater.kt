@@ -22,7 +22,7 @@ class RecyclerViewAdapater(context: Context) : RecyclerView.Adapter<RecyclerView
     }
 
     override fun onBindViewHolder(p0: RecyclerViewItem, p1: Int) {
-        p0.bindData("yo boy")
+        p0.bindData("item $p1")
     }
 
     override fun getItemCount() = 20

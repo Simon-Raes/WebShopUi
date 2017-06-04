@@ -6,6 +6,7 @@ import android.support.v7.widget.RecyclerView
 import android.util.Log
 import android.view.View
 import android.view.ViewGroup
+import kotlin.coroutines.experimental.EmptyCoroutineContext.plus
 
 
 /**
@@ -169,6 +170,8 @@ class ZigZagLayoutManager(context: Context) : RecyclerView.LayoutManager() {
 //            val newView = recycler?.getViewForPosition(firstPosition + childCount)
 //        }
 
+//        fixme the use of getchild ( 1 / count - 2) will cause a crash if there are less than 2 items
+
         Log.d(TAG, "scroll input: $dx")
 
         var scrolled = 0
@@ -177,13 +180,13 @@ class ZigZagLayoutManager(context: Context) : RecyclerView.LayoutManager() {
         if (dx < 0) {
 
             while (scrolled > dx) {
-                val leftView = getChildAt(0)
-                val hangingLeft = Math.max(-getDecoratedLeft(leftView), 0)
+                val secondView = getChildAt(1)
+                val hangingLeft = Math.max(-getDecoratedLeft(secondView), 0)
                 val scrollBy = Math.min(scrolled - dx, hangingLeft)
                 scrolled -= scrollBy
                 offsetViews(-scrollBy)
 
-//                fixme allow scrolling for an extra half tile width so the first item can get back to the selected state
+//                fixme allow scrolling for an extra one and a half tile width so the first item can get back to the selected state
                 if (firstPosition > 0 && scrolled > dx) {
                     firstPosition--
                     val v = recycler?.getViewForPosition(firstPosition)!!
@@ -191,7 +194,7 @@ class ZigZagLayoutManager(context: Context) : RecyclerView.LayoutManager() {
                     measureChildWithMarginsAndDesiredWidthAndHeight(v, tileSize, tileSize)
 
 
-                    val right = getDecoratedLeft(leftView)
+                    val right = getDecoratedLeft(secondView)
                     val left = right - getDecoratedMeasuredHeight(v)
 
                     layoutDecorated(v, left, top, right, bottom)
@@ -235,6 +238,8 @@ class ZigZagLayoutManager(context: Context) : RecyclerView.LayoutManager() {
             }
         }
 
+        recycleViewsOutOfBounds(recycler)
+
         return dx
     }
 
@@ -258,7 +263,36 @@ class ZigZagLayoutManager(context: Context) : RecyclerView.LayoutManager() {
     }
 
     private fun recycleViewsOutOfBounds(recycler: RecyclerView.Recycler?) {
-
+        val childCount = childCount
+        val parentWidth = width
+        val parentHeight = height
+        var foundFirst = false
+        var first = 0
+        var last = 0
+        for (i in 0..childCount - 1) {
+            val v = getChildAt(i)
+            if (v.hasFocus() || getDecoratedRight(v) >= 0 &&
+                    getDecoratedLeft(v) <= parentWidth &&
+                    getDecoratedBottom(v) >= 0 &&
+                    getDecoratedTop(v) <= parentHeight) {
+                if (!foundFirst) {
+                    first = i
+                    foundFirst = true
+                }
+                last = i
+            }
+        }
+        for (i in childCount - 1 downTo last + 1) {
+            removeAndRecycleViewAt(i, recycler)
+        }
+        for (i in first - 1 downTo 0) {
+            removeAndRecycleViewAt(i, recycler)
+        }
+        if (getChildCount() == 0) {
+            firstPosition = 0
+        } else {
+            firstPosition += first
+        }
     }
 
     override fun scrollToPosition(position: Int) {
