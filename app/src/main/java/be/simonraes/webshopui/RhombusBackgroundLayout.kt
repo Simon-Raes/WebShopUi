@@ -9,7 +9,7 @@ import android.widget.FrameLayout
 /**
  * Created by SimonRaes on 28/05/17.
  */
-class AngleLayout : FrameLayout {
+class RhombusBackgroundLayout : FrameLayout {
 
     private val paintClip = Paint(Paint.ANTI_ALIAS_FLAG)
 //    private val paintBackground = Paint()

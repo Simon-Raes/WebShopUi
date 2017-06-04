@@ -27,23 +27,22 @@ class ZigZagLayoutManager(context: Context) : RecyclerView.LayoutManager() {
     override fun onLayoutChildren(recycler: RecyclerView.Recycler?, state: RecyclerView.State?) {
 
         screenCenterX = width / 2
+        val availableVerticalSpace = height - paddingTop - paddingBottom
 
+        tileSize = availableVerticalSpace * 2 / 3
 
         val parentRight = width - paddingRight
         val oldLeftView = if (childCount > 0) getChildAt(0) else null
 
-        var oldLeft = oldLeftView?.left ?: paddingLeft
+        val oldLeft = oldLeftView?.left ?: paddingLeft + getLeftToMakeFirstViewStartCentered()
 
         detachAndScrapAttachedViews(recycler)
 
         var left = oldLeft
         var right: Int
-        var top = paddingTop
-        var bottom = (height - paddingBottom)
+        val top = paddingTop
 
-        val availableVerticalSpace = height - paddingTop - paddingBottom
 
-        tileSize = availableVerticalSpace * 2 / 3
 
         val count = state?.itemCount ?: 0
 
@@ -67,9 +66,13 @@ class ZigZagLayoutManager(context: Context) : RecyclerView.LayoutManager() {
 
                 i++
 
-                left = right// - if (shouldApplyLeftOffset(i)) leftOverlap else 0
+                left = right - if (shouldApplyLeftOffset(i)) leftOverlap else 0
             }
         }
+    }
+
+    private fun getLeftToMakeFirstViewStartCentered() : Int {
+        return screenCenterX - tileSize / 2
     }
 
 
@@ -79,8 +82,6 @@ class ZigZagLayoutManager(context: Context) : RecyclerView.LayoutManager() {
         val simplifiedYCenter = getYPositionForXPosition(simplifiedXCenter)
         val yOffset = (simplifiedYCenter * (tileSize / 2)).toInt()
 
-//        Log.d(TAG, "getYOffsetForXPosition = xCenter:$xCenter -> simplifiedYCenter:$simplifiedYCenter -> yOffset:$yOffset")
-
         return yOffset
     }
 
@@ -89,7 +90,6 @@ class ZigZagLayoutManager(context: Context) : RecyclerView.LayoutManager() {
      * 1 is the point where it first reaches its lowest 1 value, 2 is where it's at the highest y again, and so on.
      * */
     private fun simplifyXPosition(xPosition: Int): Float {
-//            Log.d(TAG, "simplifyXPosition = xPosition:$xPosition -> ${(xPosition - screenCenterX) / tileSize.toFloat()}")
         return (screenCenterX - xPosition) / (tileSize / 2).toFloat()
     }
 
@@ -156,20 +156,39 @@ class ZigZagLayoutManager(context: Context) : RecyclerView.LayoutManager() {
 
     override fun scrollHorizontallyBy(dx: Int, recycler: RecyclerView.Recycler?, state: RecyclerView.State?): Int {
 
-        val centerXBefore = getViewCenterX(getChildAt(0))
-        val yOffsetBefore = getYOffsetForXPosition(centerXBefore)
 
-        getChildAt(0).offsetLeftAndRight(-dx)
+        for (i in 0 .. childCount - 1)
+        {
+            offsetView(getChildAt(i), dx)
+        }
 
-
-        val centerX = getViewCenterX(getChildAt(0))
-        val yOffset = getYOffsetForXPosition(centerX)
-
-        //TODO("calculate the distance we need to move them up or down, then do that")
-//        getChildAt(0).top
-        getChildAt(0).offsetTopAndBottom(yOffset - yOffsetBefore)
+//        val centerXBefore = getViewCenterX(getChildAt(0))
+//        val yOffsetBefore = getYOffsetForXPosition(centerXBefore)
+//
+//        getChildAt(0).offsetLeftAndRight(-dx)
+//
+//
+//        val centerX = getViewCenterX(getChildAt(0))
+//        val yOffset = getYOffsetForXPosition(centerX)
+//
+//        //TODO("calculate the distance we need to move them up or down, then do that")
+////        getChildAt(0).top
+//        getChildAt(0).offsetTopAndBottom(yOffset - yOffsetBefore)
 
         return dx
+    }
+
+
+    private fun offsetView(view: View, dx: Int) {
+        val centerXBefore = getViewCenterX(view)
+        val yOffsetBefore = getYOffsetForXPosition(centerXBefore)
+
+        view.offsetLeftAndRight(-dx)
+
+        val centerX = getViewCenterX(view)
+        val yOffset = getYOffsetForXPosition(centerX)
+
+        view.offsetTopAndBottom(yOffset - yOffsetBefore)
     }
 
     private fun recycleViewsOutOfBounds(recycler: RecyclerView.Recycler?) {
