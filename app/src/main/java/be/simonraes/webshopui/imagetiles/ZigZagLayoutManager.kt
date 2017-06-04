@@ -3,10 +3,8 @@ package be.simonraes.webshopui.imagetiles
 import android.content.Context
 import android.graphics.Rect
 import android.support.v7.widget.RecyclerView
-import android.util.Log
 import android.view.View
 import android.view.ViewGroup
-import kotlin.coroutines.experimental.EmptyCoroutineContext.plus
 
 
 /**
@@ -41,9 +39,6 @@ class ZigZagLayoutManager(context: Context) : RecyclerView.LayoutManager() {
 
         var left = oldLeft
         var right: Int
-        val top = paddingTop
-
-
 
         val count = state?.itemCount ?: 0
 
@@ -54,16 +49,9 @@ class ZigZagLayoutManager(context: Context) : RecyclerView.LayoutManager() {
             val v = recycler?.getViewForPosition(firstPosition + i)
             if (v != null) {
 
-                addView(v, i)
+                right = left + tileSize
 
-                measureChildWithMarginsAndDesiredWidthAndHeight(v, tileSize, tileSize)
-
-                right = left + getDecoratedMeasuredWidth(v)
-
-                val xCenter = left + tileSize / 2
-                val yOffset = getYOffsetForXPosition(xCenter)
-
-                layoutDecorated(v, left, top + yOffset, right, top + getDecoratedMeasuredHeight(v) + yOffset)
+                addNewView(v, left, right)
 
                 i++
 
@@ -72,7 +60,7 @@ class ZigZagLayoutManager(context: Context) : RecyclerView.LayoutManager() {
         }
     }
 
-    private fun getLeftToMakeFirstViewStartCentered() : Int {
+    private fun getLeftToMakeFirstViewStartCentered(): Int {
         return screenCenterX - tileSize / 2
     }
 
@@ -162,7 +150,6 @@ class ZigZagLayoutManager(context: Context) : RecyclerView.LayoutManager() {
         }
 
 
-
         // todo proper padding and decorations support
 
 
@@ -180,19 +167,15 @@ class ZigZagLayoutManager(context: Context) : RecyclerView.LayoutManager() {
                 scrolled -= scrollBy
                 offsetViews(-scrollBy)
 
-                if (firstPosition > 0  && getViewCenterX(firstView) > 0) {
+                if (firstPosition > 0 && getViewCenterX(firstView) > 0) {
                     firstPosition--
-                    val v = recycler?.getViewForPosition(firstPosition)!!
-                    addView(v, 0)
-                    measureChildWithMarginsAndDesiredWidthAndHeight(v, tileSize, tileSize)
 
+                    val v = recycler?.getViewForPosition(firstPosition)!!
 
                     val right = getDecoratedLeft(firstView) + tileSize / 2
-                    val left = right - getDecoratedMeasuredHeight(v)
+                    val left = right - tileSize
 
-                    val xCenter = left + tileSize / 2
-                    val yOffset = getYOffsetForXPosition(xCenter)
-                    layoutDecorated(v, left, top + yOffset, right, top + getDecoratedMeasuredHeight(v) + yOffset)
+                    addNewView(v, left, right, true)
                 } else {
                     break
                 }
@@ -206,22 +189,15 @@ class ZigZagLayoutManager(context: Context) : RecyclerView.LayoutManager() {
                 scrolled -= scrollBy
                 offsetViews(-scrollBy)
 
-
                 // We still have more to scroll and we can add a new child view
-                if ( state!!.getItemCount() > firstPosition + childCount && getViewCenterX(lastView) < width) {
+                if (state!!.getItemCount() > firstPosition + childCount && getViewCenterX(lastView) < width) {
+
                     val v = recycler?.getViewForPosition(firstPosition + childCount)!!
+
                     val left = getDecoratedRight(lastView) - tileSize / 2
+                    val right = left + tileSize
 
-
-                    addView(v)
-                    measureChildWithMarginsAndDesiredWidthAndHeight(v, tileSize, tileSize)
-
-                    val right = left + getDecoratedMeasuredWidth(v)
-
-                    // todo some duplicate code here - see onLayoutChildren and the code above
-                    val xCenter = left + tileSize / 2
-                    val yOffset = getYOffsetForXPosition(xCenter)
-                    layoutDecorated(v, left, top + yOffset, right, top + getDecoratedMeasuredHeight(v) + yOffset)
+                    addNewView(v, left, right)
                 } else {
                     break
                 }
@@ -234,8 +210,7 @@ class ZigZagLayoutManager(context: Context) : RecyclerView.LayoutManager() {
     }
 
     private fun offsetViews(dx: Int) {
-        for (i in 0 .. childCount - 1)
-        {
+        for (i in 0..childCount - 1) {
             offsetView(getChildAt(i), dx)
         }
     }
@@ -250,6 +225,19 @@ class ZigZagLayoutManager(context: Context) : RecyclerView.LayoutManager() {
         val yOffset = getYOffsetForXPosition(centerX)
 
         view.offsetTopAndBottom(yOffset - yOffsetBefore)
+    }
+
+    private fun addNewView(view: View, left: Int, right: Int, addInFront: Boolean = false) {
+        if (addInFront) {
+            addView(view, 0)
+        } else {
+            addView(view)
+        }
+        measureChildWithMarginsAndDesiredWidthAndHeight(view, tileSize, tileSize)
+
+        val xCenter = left + tileSize / 2
+        val yOffset = getYOffsetForXPosition(xCenter)
+        layoutDecorated(view, left, paddingTop + yOffset, right, paddingTop + tileSize + yOffset)
     }
 
     private fun recycleViewsOutOfBounds(recycler: RecyclerView.Recycler?) {
