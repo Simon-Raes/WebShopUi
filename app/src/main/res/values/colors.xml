@@ -3,4 +3,13 @@
     <color name="colorPrimary">#3F51B5</color>
     <color name="colorPrimaryDark">#303F9F</color>
     <color name="colorAccent">#FF4081</color>
+
+    <color name="white">#FFFFFF</color>
+    <color name="black">#111111</color>
+
+    <color name="screen_background">#C4708C</color>
+
+    <!--Rhombus overlay-->
+    <color name="rhombusoverlay_line">#E2BECE</color>
+    <color name="rhombusoverlay_slant">#CD95A8</color>
 </resources>

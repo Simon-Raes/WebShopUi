@@ -6,7 +6,17 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context="be.simonraes.webshopui.MainActivity"
-    android:background="@android:color/holo_blue_bright">
+    android:background="@color/screen_background">
+
+    <be.simonraes.webshopui.views.RhombusItemsOverlay
+        android:id="@+id/rhombusitemsoverlay"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        tools:layout_editor_absoluteY="8dp"
+        app:layout_constraintTop_toTopOf="@+id/recyclerview"
+        app:layout_constraintBottom_toBottomOf="@+id/recyclerview"/>
 
     <android.support.v7.widget.RecyclerView
         android:id="@+id/recyclerview"

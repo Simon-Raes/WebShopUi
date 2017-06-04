@@ -12,7 +12,6 @@ import android.widget.FrameLayout
 class RhombusBackgroundLayout : FrameLayout {
 
     private val paintClip = Paint(Paint.ANTI_ALIAS_FLAG)
-//    private val paintBackground = Paint()
 
     private val pdMode: PorterDuffXfermode = PorterDuffXfermode(PorterDuff.Mode.CLEAR)
     private lateinit var path: Path
@@ -25,8 +24,6 @@ class RhombusBackgroundLayout : FrameLayout {
     constructor(context: Context?, attrs: AttributeSet?, defStyleAttr: Int) : super(context, attrs, defStyleAttr){init()}
 
     private fun init() {
-//        paintClip.color = Color.WHITE
-//        paintBackground.color = Color.WHITE
         paintClip.xfermode = pdMode
 
     }
@@ -38,14 +35,6 @@ class RhombusBackgroundLayout : FrameLayout {
         layoutHeight = measuredHeight.toFloat()
         createClipPath()
     }
-
-//    override fun onLayout(changed: Boolean, l: Int, t: Int, r: Int, b: Int) : onLayout {
-//        if (changed) {
-//            layoutWidth = width.toFloat()
-//            layoutHeight = height.toFloat()
-//            createClipPath()
-//        }
-//    }
 
     private fun createClipPath() {
         path = Path()

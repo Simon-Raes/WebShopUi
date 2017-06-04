@@ -1,4 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <dimen name="margin_rhombus_item">10dp</dimen>
+
+    <!--Rhombus items-->
+    <dimen name="margin_rhombus_item">20dp</dimen>
+
+    <!--Rhombus overlay-->
+    <dimen name="rhombus_overlay_line_width">2dp</dimen>
+
 </resources>
