@@ -9,6 +9,7 @@ import android.widget.Button
 import be.simonraes.webshopui.R.id.viewpager
 import android.support.v7.widget.LinearSnapHelper
 import android.support.v7.widget.SnapHelper
+import be.simonraes.webshopui.imagetiles.RhombusItemDecoration
 import be.simonraes.webshopui.imagetiles.ZigZagLayoutManager
 
 
@@ -25,11 +26,11 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         recyclerView = findViewById(R.id.recyclerview) as RecyclerView
-        recyclerView.layoutManager = ZigZagLayoutManager(this)
-
+        recyclerView.layoutManager = ZigZagLayoutManager()
         recyclerView.adapter = RecyclerViewAdapater(this)
         val snapHelper = LinearSnapHelper()
         snapHelper.attachToRecyclerView(recyclerView)
+        recyclerView.addItemDecoration(RhombusItemDecoration(this))
 
         viewpager = findViewById(R.id.viewpager) as ViewPager
         val adapter = ViewPagerAdapter (supportFragmentManager)

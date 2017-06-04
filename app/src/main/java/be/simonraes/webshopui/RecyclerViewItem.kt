@@ -10,7 +10,7 @@ import android.widget.TextView
  */
 class RecyclerViewItem(itemView: View) : ViewHolder(itemView) {
 
-    private lateinit var textView : TextView
+    private val textView : TextView
 
     init {
         textView = itemView.findViewById(R.id.textview) as TextView

@@ -10,7 +10,7 @@ import android.view.ViewGroup
 /**
  * Moves items in a W shape.
  */
-class ZigZagLayoutManager(context: Context) : RecyclerView.LayoutManager() {
+class ZigZagLayoutManager : RecyclerView.LayoutManager() {
 
     // todo proper padding and decorations support
 
@@ -103,7 +103,6 @@ class ZigZagLayoutManager(context: Context) : RecyclerView.LayoutManager() {
         }
 
         var scrolled = 0
-        val top = paddingTop
         if (dx < 0) {
 
             while (scrolled > dx) {
