@@ -156,28 +156,86 @@ class ZigZagLayoutManager(context: Context) : RecyclerView.LayoutManager() {
 
     override fun scrollHorizontallyBy(dx: Int, recycler: RecyclerView.Recycler?, state: RecyclerView.State?): Int {
 
-
-        for (i in 0 .. childCount - 1)
-        {
-            offsetView(getChildAt(i), dx)
+        if (childCount == 0) {
+            return 0
         }
 
-//        val centerXBefore = getViewCenterX(getChildAt(0))
-//        val yOffsetBefore = getYOffsetForXPosition(centerXBefore)
+
+
+//        val lastView = getChildAt(childCount -1)
 //
-//        getChildAt(0).offsetLeftAndRight(-dx)
-//
-//
-//        val centerX = getViewCenterX(getChildAt(0))
-//        val yOffset = getYOffsetForXPosition(centerX)
-//
-//        //TODO("calculate the distance we need to move them up or down, then do that")
-////        getChildAt(0).top
-//        getChildAt(0).offsetTopAndBottom(yOffset - yOffsetBefore)
+////        todo proper padding support - or remove it everywhere and don't support it, but it's not that hard
+//        if(getViewCenterX(lastView) < width) {
+//            val newView = recycler?.getViewForPosition(firstPosition + childCount)
+//        }
+
+        Log.d(TAG, "scroll input: $dx")
+
+        var scrolled = 0
+        val top = paddingTop
+        val bottom = height - paddingBottom
+        if (dx < 0) {
+            // todo
+
+            offsetViews(dx)
+
+
+//            while (scrolled > dx) {
+//                val topView = getChildAt(0)
+//                val hangingTop = Math.max(-getDecoratedTop(topView), 0)
+//                val scrollBy = Math.min(scrolled - dy, hangingTop)
+//                scrolled -= scrollBy
+//                offsetChildrenVertical(scrollBy)
+//                if (mFirstPosition > 0 && scrolled > dy) {
+//                    mFirstPosition--
+//                    val v = recycler.getViewForPosition(mFirstPosition)
+//                    addView(v, 0)
+//                    measureChildWithMargins(v, 0, 0)
+//                    val bottom = getDecoratedTop(topView)
+//                    val top = bottom - getDecoratedMeasuredHeight(v)
+//                    layoutDecorated(v, left, top, right, bottom)
+//                } else {
+//                    break
+//                }
+//            }
+        } else if (dx > 0) {
+            val parentWidth = width
+            while (scrolled < dx) {
+                val secondLastView = getChildAt(childCount - 2)
+                val hangingRight = Math.max(getDecoratedRight(secondLastView) - parentWidth, 0)
+                val scrollBy = -Math.min(dx - scrolled, hangingRight)
+                scrolled -= scrollBy
+                offsetViews(-scrollBy)
+
+                // We still have more to scroll and we can add a new child view
+                if (scrolled < dx && state!!.getItemCount() > firstPosition + childCount) {
+                    val v = recycler?.getViewForPosition(firstPosition + childCount)!!
+                    val left = getDecoratedRight(secondLastView)
+
+
+                    addView(v)
+                    measureChildWithMarginsAndDesiredWidthAndHeight(v, tileSize, tileSize)
+
+                    // todo some duplicate code here - see onLayoutChildren
+                    val right = left + getDecoratedMeasuredWidth(v)
+                    val xCenter = left + tileSize / 2
+                    val yOffset = getYOffsetForXPosition(xCenter)
+                    layoutDecorated(v, left, top + yOffset, right, top + getDecoratedMeasuredHeight(v) + yOffset)
+                } else {
+                    break
+                }
+            }
+        }
 
         return dx
     }
 
+    private fun offsetViews(dx: Int) {
+        for (i in 0 .. childCount - 1)
+        {
+            offsetView(getChildAt(i), dx)
+        }
+    }
 
     private fun offsetView(view: View, dx: Int) {
         val centerXBefore = getViewCenterX(view)

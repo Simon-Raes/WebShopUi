@@ -25,12 +25,11 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         recyclerView = findViewById(R.id.recyclerview) as RecyclerView
-//        recyclerView.layoutManager = LinearLayoutManager(this, RecyclerView.HORIZONTAL, false)
         recyclerView.layoutManager = ZigZagLayoutManager(this)
 
         recyclerView.adapter = RecyclerViewAdapater(this)
         val snapHelper = LinearSnapHelper()
-        snapHelper.attachToRecyclerView(recyclerView)
+//        snapHelper.attachToRecyclerView(recyclerView)
 
         viewpager = findViewById(R.id.viewpager) as ViewPager
         val adapter = ViewPagerAdapter (supportFragmentManager)
