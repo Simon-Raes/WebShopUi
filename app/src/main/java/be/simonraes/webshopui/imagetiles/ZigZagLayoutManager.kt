@@ -8,9 +8,11 @@ import android.view.ViewGroup
 
 
 /**
- * Created by SimonRaes on 03/06/17.
+ * Moves items in a W shape.
  */
 class ZigZagLayoutManager(context: Context) : RecyclerView.LayoutManager() {
+
+    // todo proper padding and decorations support
 
     private val TAG = "ZigZagLayoutManager"
 
@@ -33,7 +35,8 @@ class ZigZagLayoutManager(context: Context) : RecyclerView.LayoutManager() {
         val parentRight = width - paddingRight
         val oldLeftView = if (childCount > 0) getChildAt(0) else null
 
-        val oldLeft = oldLeftView?.left ?: paddingLeft + getLeftToMakeFirstViewStartCentered()
+        val extraOffsetToMakeFirstViewStartCentered = screenCenterX - tileSize / 2
+        val oldLeft = oldLeftView?.left ?: paddingLeft + extraOffsetToMakeFirstViewStartCentered
 
         detachAndScrapAttachedViews(recycler)
 
@@ -60,61 +63,9 @@ class ZigZagLayoutManager(context: Context) : RecyclerView.LayoutManager() {
         }
     }
 
-    private fun getLeftToMakeFirstViewStartCentered(): Int {
-        return screenCenterX - tileSize / 2
-    }
-
-
-    private fun getYOffsetForXPosition(xCenter: Int): Int {
-
-        val simplifiedXCenter = simplifyXPosition(xCenter)
-        val simplifiedYCenter = getYPositionForXPosition(simplifiedXCenter)
-        val yOffset = (simplifiedYCenter * (tileSize / 2)).toInt()
-
-        return yOffset
-    }
-
-    /**
-     * Converts the on screen x position to an x position on the simplified graph where 0 is the center of the screen,
-     * 1 is the point where it first reaches its lowest 1 value, 2 is where it's at the highest y again, and so on.
-     * */
-    private fun simplifyXPosition(xPosition: Int): Float {
-        return (screenCenterX - xPosition) / (tileSize / 2).toFloat()
-    }
-
-    private fun getViewCenterX(view: View) = (view.left + view.right) / 2
-    private fun getViewCenterY(view: View) = (view.top + view.bottom) / 2
-
 
     private fun shouldApplyLeftOffset(index: Int) = index > 0
 
-
-    /**
-     * Works with values on the simplified values graph, for both x and y.
-     * x is 0 at the view's highest y position, x is 1 at the view's lowest position, view is at the highest position again at 2, and so on
-     * y 1 is the view's highest position, y 0 is its lowest position
-     * */
-    private fun getYPositionForXPosition(xPosition: Float): Float {
-        val xPos = normaliseXPosition(xPosition)
-
-//        Log.d(TAG, "getYPositionForXPosition = input:$xPosition - normalised:$xPos - result:${1-xPos}")
-
-        return xPos
-    }
-
-    private fun normaliseXPosition(xPosition: Float): Float {
-        var mutableX = xPosition
-
-        mutableX = Math.abs(mutableX)
-        mutableX = mutableX % 2
-        if (mutableX > 1)
-            mutableX = 2 - mutableX
-
-
-//        Log.d(TAG, "normaliseXPosition = $xPosition -> $mutableX")
-
-        return mutableX
-    }
 
     fun measureChildWithMarginsAndDesiredWidthAndHeight(child: View, desiredWidth: Int, desiredHeight: Int) {
         val lp = child.getLayoutParams() as RecyclerView.LayoutParams
@@ -143,18 +94,13 @@ class ZigZagLayoutManager(context: Context) : RecyclerView.LayoutManager() {
 
     override fun canScrollHorizontally() = true
 
+    private fun getViewCenterX(view: View) = (view.left + view.right) / 2
+
     override fun scrollHorizontallyBy(dx: Int, recycler: RecyclerView.Recycler?, state: RecyclerView.State?): Int {
 
         if (childCount == 0) {
             return 0
         }
-
-
-        // todo proper padding and decorations support
-
-
-        // fixme let the list scroll a bit farther than normally for the very first and last views
-        // we want to scroll them up to their selected position
 
         var scrolled = 0
         val top = paddingTop
@@ -191,7 +137,7 @@ class ZigZagLayoutManager(context: Context) : RecyclerView.LayoutManager() {
             while (scrolled < dx) {
                 val lastView = getChildAt(childCount - 1)
 
-                val extraRightOffset = if(firstPosition + childCount == state!!.itemCount) (screenCenterX -tileSize / 2 ) else 0
+                val extraRightOffset = if (firstPosition + childCount == state!!.itemCount) (screenCenterX - tileSize / 2) else 0
                 val lastViewRightSide = getDecoratedRight(lastView) + extraRightOffset
 
                 val hangingRight = Math.max(lastViewRightSide - parentWidth, 0)
@@ -237,6 +183,8 @@ class ZigZagLayoutManager(context: Context) : RecyclerView.LayoutManager() {
         view.offsetTopAndBottom(yOffset - yOffsetBefore)
     }
 
+
+
     private fun addNewView(view: View, left: Int, right: Int, addInFront: Boolean = false) {
         if (addInFront) {
             addView(view, 0)
@@ -248,6 +196,46 @@ class ZigZagLayoutManager(context: Context) : RecyclerView.LayoutManager() {
         val xCenter = left + tileSize / 2
         val yOffset = getYOffsetForXPosition(xCenter)
         layoutDecorated(view, left, paddingTop + yOffset, right, paddingTop + tileSize + yOffset)
+    }
+
+    private fun getYOffsetForXPosition(xCenter: Int): Int {
+
+        val simplifiedXCenter = simplifyXPosition(xCenter)
+        val simplifiedYCenter = getYPositionForXPosition(simplifiedXCenter)
+        val yOffset = (simplifiedYCenter * (tileSize / 2)).toInt()
+
+        return yOffset
+    }
+
+    /**
+     * Converts the on screen x position to an x position on the simplified graph where 0 is the center of the screen,
+     * 1 is the point where it first reaches its lowest 1 value, 2 is where it's at the highest y again, and so on.
+     * */
+    private fun simplifyXPosition(xPosition: Int): Float {
+        return (screenCenterX - xPosition) / (tileSize / 2).toFloat()
+    }
+
+    /**
+     * Works with values on the simplified values graph, for both x and y.
+     * x is 0 at the view's highest y position, x is 1 at the view's lowest position, view is at the highest position again at 2, and so on
+     * y 1 is the view's highest position, y 0 is its lowest position
+     * */
+    private fun getYPositionForXPosition(xPosition: Float): Float {
+        val xPos = normaliseXPosition(xPosition)
+
+        return xPos
+    }
+
+    private fun normaliseXPosition(xPosition: Float): Float {
+        var mutableX = xPosition
+
+        mutableX = Math.abs(mutableX)
+        // Layoutmanager can be switched back to a VVVVV tile movement pattern by adding back this line here: mutableX = mutableX % 2
+        // Removed it to make the pattern a large W
+        if (mutableX > 1)
+            mutableX = 2 - mutableX
+
+        return mutableX
     }
 
     private fun recycleViewsOutOfBounds(recycler: RecyclerView.Recycler?) {
