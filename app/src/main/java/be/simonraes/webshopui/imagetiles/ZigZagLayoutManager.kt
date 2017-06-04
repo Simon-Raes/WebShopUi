@@ -175,29 +175,34 @@ class ZigZagLayoutManager(context: Context) : RecyclerView.LayoutManager() {
         val top = paddingTop
         val bottom = height - paddingBottom
         if (dx < 0) {
-            // todo
 
-            offsetViews(dx)
+            while (scrolled > dx) {
+                val leftView = getChildAt(0)
+                val hangingLeft = Math.max(-getDecoratedLeft(leftView), 0)
+                val scrollBy = Math.min(scrolled - dx, hangingLeft)
+                scrolled -= scrollBy
+                offsetViews(-scrollBy)
+
+//                fixme allow scrolling for an extra half tile width so the first item can get back to the selected state
+                if (firstPosition > 0 && scrolled > dx) {
+                    firstPosition--
+                    val v = recycler?.getViewForPosition(firstPosition)!!
+                    addView(v, 0)
+                    measureChildWithMarginsAndDesiredWidthAndHeight(v, tileSize, tileSize)
 
 
-//            while (scrolled > dx) {
-//                val topView = getChildAt(0)
-//                val hangingTop = Math.max(-getDecoratedTop(topView), 0)
-//                val scrollBy = Math.min(scrolled - dy, hangingTop)
-//                scrolled -= scrollBy
-//                offsetChildrenVertical(scrollBy)
-//                if (mFirstPosition > 0 && scrolled > dy) {
-//                    mFirstPosition--
-//                    val v = recycler.getViewForPosition(mFirstPosition)
-//                    addView(v, 0)
-//                    measureChildWithMargins(v, 0, 0)
-//                    val bottom = getDecoratedTop(topView)
-//                    val top = bottom - getDecoratedMeasuredHeight(v)
-//                    layoutDecorated(v, left, top, right, bottom)
-//                } else {
-//                    break
-//                }
-//            }
+                    val right = getDecoratedLeft(leftView)
+                    val left = right - getDecoratedMeasuredHeight(v)
+
+                    layoutDecorated(v, left, top, right, bottom)
+
+                    val xCenter = left + tileSize / 2
+                    val yOffset = getYOffsetForXPosition(xCenter)
+                    layoutDecorated(v, left, top + yOffset, right, top + getDecoratedMeasuredHeight(v) + yOffset)
+                } else {
+                    break
+                }
+            }
         } else if (dx > 0) {
             val parentWidth = width
             while (scrolled < dx) {
@@ -206,6 +211,8 @@ class ZigZagLayoutManager(context: Context) : RecyclerView.LayoutManager() {
                 val scrollBy = -Math.min(dx - scrolled, hangingRight)
                 scrolled -= scrollBy
                 offsetViews(-scrollBy)
+
+                // fixme allow scrolling for an extra tile and a half so the last item can get into the selected state
 
                 // We still have more to scroll and we can add a new child view
                 if (scrolled < dx && state!!.getItemCount() > firstPosition + childCount) {
@@ -216,8 +223,9 @@ class ZigZagLayoutManager(context: Context) : RecyclerView.LayoutManager() {
                     addView(v)
                     measureChildWithMarginsAndDesiredWidthAndHeight(v, tileSize, tileSize)
 
-                    // todo some duplicate code here - see onLayoutChildren
                     val right = left + getDecoratedMeasuredWidth(v)
+
+                    // todo some duplicate code here - see onLayoutChildren and the code above
                     val xCenter = left + tileSize / 2
                     val yOffset = getYOffsetForXPosition(xCenter)
                     layoutDecorated(v, left, top + yOffset, right, top + getDecoratedMeasuredHeight(v) + yOffset)
