@@ -29,7 +29,7 @@ class MainActivity : AppCompatActivity() {
 
         recyclerView.adapter = RecyclerViewAdapater(this)
         val snapHelper = LinearSnapHelper()
-//        snapHelper.attachToRecyclerView(recyclerView)
+        snapHelper.attachToRecyclerView(recyclerView)
 
         viewpager = findViewById(R.id.viewpager) as ViewPager
         val adapter = ViewPagerAdapter (supportFragmentManager)

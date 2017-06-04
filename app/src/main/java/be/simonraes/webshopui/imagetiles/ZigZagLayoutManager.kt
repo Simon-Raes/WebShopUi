@@ -162,7 +162,13 @@ class ZigZagLayoutManager(context: Context) : RecyclerView.LayoutManager() {
 
             while (scrolled > dx) {
                 val firstView = getChildAt(0)
-                val hangingLeft = Math.max(-getDecoratedLeft(firstView), 0)
+
+                // If we're scrolling the first adapter position to the right, we add some extra scroll distance so that view can scroll to the center of the screen.
+                // We don't need (or want to!) add this for other views
+                val extraLeftOffset = if (firstPosition == 0) (screenCenterX - tileSize / 2) else 0
+                val firstViewLeftSide = extraLeftOffset - getDecoratedLeft(firstView)
+
+                val hangingLeft = Math.max(firstViewLeftSide, 0)
                 val scrollBy = Math.min(scrolled - dx, hangingLeft)
                 scrolled -= scrollBy
                 offsetViews(-scrollBy)
@@ -184,13 +190,17 @@ class ZigZagLayoutManager(context: Context) : RecyclerView.LayoutManager() {
             val parentWidth = width
             while (scrolled < dx) {
                 val lastView = getChildAt(childCount - 1)
-                val hangingRight = Math.max(getDecoratedRight(lastView) - parentWidth, 0)
+
+                val extraRightOffset = if(firstPosition + childCount == state!!.itemCount) (screenCenterX -tileSize / 2 ) else 0
+                val lastViewRightSide = getDecoratedRight(lastView) + extraRightOffset
+
+                val hangingRight = Math.max(lastViewRightSide - parentWidth, 0)
                 val scrollBy = -Math.min(dx - scrolled, hangingRight)
                 scrolled -= scrollBy
                 offsetViews(-scrollBy)
 
                 // We still have more to scroll and we can add a new child view
-                if (state!!.getItemCount() > firstPosition + childCount && getViewCenterX(lastView) < width) {
+                if (state.getItemCount() > firstPosition + childCount && getViewCenterX(lastView) < width) {
 
                     val v = recycler?.getViewForPosition(firstPosition + childCount)!!
 
@@ -206,7 +216,7 @@ class ZigZagLayoutManager(context: Context) : RecyclerView.LayoutManager() {
 
         recycleViewsOutOfBounds(recycler)
 
-        return dx
+        return scrolled
     }
 
     private fun offsetViews(dx: Int) {
