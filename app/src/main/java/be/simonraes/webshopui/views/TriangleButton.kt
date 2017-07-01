@@ -16,6 +16,9 @@ import be.simonraes.webshopui.R
  */
 class TriangleButton : Button {
 
+    // todo don't intercept touch events outside the triangle area
+    // should be able to scroll the items there
+
     private val paintBackground = Paint(Paint.ANTI_ALIAS_FLAG)
 
     private lateinit var path: Path
@@ -89,10 +92,19 @@ class TriangleButton : Button {
         canvas.drawPath(path, paintBackground)
 
 
-//        todo clean up ugly code!!
-        iconDrawable?.setBounds(0, 0, iconDrawable!!.intrinsicWidth, iconDrawable!!.intrinsicWidth);
+        iconDrawable?.let {
 
-        canvas.translate(width / 2f - iconDrawable!!.intrinsicWidth / 2, height / 2f - iconDrawable!!.intrinsicWidth / 2)
-        iconDrawable?.draw(canvas)
+            it.setBounds(0, 0, it.intrinsicWidth, it.intrinsicWidth);
+
+            val extraXOffset = width / 10
+            val extraXOffsetForDirection = extraXOffset * if (pointRight) -1 else 1
+
+            val xPos = width / 2f - it.intrinsicWidth / 2 + extraXOffsetForDirection
+            val yPos = height / 2f - it.intrinsicWidth / 2
+
+            canvas.translate(xPos, yPos)
+
+            it.draw(canvas)
+        }
     }
 }
