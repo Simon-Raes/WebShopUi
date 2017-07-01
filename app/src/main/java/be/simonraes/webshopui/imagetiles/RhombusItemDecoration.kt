@@ -7,7 +7,7 @@ import android.view.View
 import be.simonraes.webshopui.R
 
 /**
- * Created by SimonRaes on 04/06/17.
+ * Adds some margins between the items in the ZigZagLayoutManager.
  */
 
 class RhombusItemDecoration(context: Context) : RecyclerView.ItemDecoration() {
