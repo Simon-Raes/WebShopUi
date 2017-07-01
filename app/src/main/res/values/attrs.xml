@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <declare-styleable name="TriangleButton">
+        <attr name="tb_direction" format="enum">
+            <enum name="left" value="0"/>
+            <enum name="right" value="1"/>
+        </attr>
+        <attr name="tb_color" format="color"/>
+        <attr name="tb_icon" format="reference"/>
+    </declare-styleable>
+
+</resources>

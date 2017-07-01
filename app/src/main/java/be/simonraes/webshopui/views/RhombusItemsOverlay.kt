@@ -10,7 +10,7 @@ import android.view.View
 import be.simonraes.webshopui.R
 
 /**
- * Created by SimonRaes on 04/06/17.
+ * Overlays lines and shapes above the ZigZag items.
  */
 class RhombusItemsOverlay : View {
 

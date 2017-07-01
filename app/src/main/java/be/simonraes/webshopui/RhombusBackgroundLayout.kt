@@ -7,25 +7,32 @@ import android.widget.FrameLayout
 
 
 /**
- * Created by SimonRaes on 28/05/17.
+ * ViewGroup that clips its content to a Rhombus shape.
  */
 class RhombusBackgroundLayout : FrameLayout {
 
     private val paintClip = Paint(Paint.ANTI_ALIAS_FLAG)
 
-    private val pdMode: PorterDuffXfermode = PorterDuffXfermode(PorterDuff.Mode.CLEAR)
+    private val porterDuffXfermodeClear: PorterDuffXfermode = PorterDuffXfermode(PorterDuff.Mode.CLEAR)
     private lateinit var path: Path
 
-    var layoutWidth = 0f
-    var layoutHeight = 0f
+    private var layoutWidth = 0f
+    private var layoutHeight = 0f
 
-    constructor(context: Context?) : super(context) {init()}
-    constructor(context: Context?, attrs: AttributeSet?) : super(context, attrs){init()}
-    constructor(context: Context?, attrs: AttributeSet?, defStyleAttr: Int) : super(context, attrs, defStyleAttr){init()}
+    constructor(context: Context?) : super(context) {
+        init()
+    }
+
+    constructor(context: Context?, attrs: AttributeSet?) : super(context, attrs) {
+        init()
+    }
+
+    constructor(context: Context?, attrs: AttributeSet?, defStyleAttr: Int) : super(context, attrs, defStyleAttr) {
+        init()
+    }
 
     private fun init() {
-        paintClip.xfermode = pdMode
-
+        paintClip.xfermode = porterDuffXfermodeClear
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
@@ -70,15 +77,11 @@ class RhombusBackgroundLayout : FrameLayout {
 
     override fun dispatchDraw(canvas: Canvas) {
 
-//        canvas.drawRect(0f,0f, layoutWidth, layoutHeight, paintBackground)
         val saveCount = canvas.saveLayer(0f, 0f, layoutWidth, layoutHeight, null, Canvas.ALL_SAVE_FLAG)
 
         super.dispatchDraw(canvas)
-//
-//        paintClip.xfermode = pdMode
-        canvas.drawPath(path, paintClip)
 
+        canvas.drawPath(path, paintClip)
         canvas.restoreToCount(saveCount)
-//        paintClip.xfermode = null
     }
 }
