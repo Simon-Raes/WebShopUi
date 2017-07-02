@@ -1,6 +1,5 @@
 package be.simonraes.webshopui.imagetiles
 
-import android.content.Context
 import android.graphics.Rect
 import android.support.v7.widget.RecyclerView
 import android.view.View
@@ -183,7 +182,6 @@ class ZigZagLayoutManager : RecyclerView.LayoutManager() {
     }
 
 
-
     private fun addNewView(view: View, left: Int, right: Int, addInFront: Boolean = false) {
         if (addInFront) {
             addView(view, 0)
@@ -271,6 +269,48 @@ class ZigZagLayoutManager : RecyclerView.LayoutManager() {
     }
 
     override fun scrollToPosition(position: Int) {
-        super.scrollToPosition(position)
+//        todo fix obviously
+        firstPosition = position -2
+        requestLayout()
     }
+
+    override fun smoothScrollToPosition(recyclerView: RecyclerView?, state: RecyclerView.State?, position: Int) {
+//        todo implement
+    }
+
+    fun findFirstCompletelyVisibleItemPosition(): Int {
+        if (childCount > 0) {
+            for (i in 0..childCount - 1) {
+                val v = getChildAt(i)
+                if (getDecoratedLeft(v) >= paddingLeft && getDecoratedLeft(v) <= width - paddingBottom) {
+                    return getPosition(v)
+                }
+            }
+        }
+
+        return 0
+    }
+
+    fun findFirstVisibleItemPosition(): Int {
+        return firstPosition
+    }
+
+    fun findLastCompletelyVisibleItemPosition(): Int {
+        if (childCount > 0) {
+            for (i in childCount - 1..0) {
+                val v = getChildAt(i)
+                if (getDecoratedLeft(v) >= paddingLeft && getDecoratedLeft(v) <= width - paddingBottom) {
+                    return getPosition(v)
+                }
+            }
+        }
+
+        return 0
+    }
+
+    fun findLastVisibleItemPosition(): Int {
+        return firstPosition + childCount
+    }
+
+
 }
